@@ -2,8 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
 const morgan  = require('morgan');
-const { initDB } = require('./db/db');
-const { seedUsers } = require('./db/seed');   // ← ✨ v2.0: เพิ่ม seed
+const { pool } = require('./db/db');
+
 const authRoutes = require('./routes/auth');
 
 const app  = express();
@@ -26,8 +26,8 @@ async function start() {
   let retries = 10;
   while (retries > 0) {
     try {
-      await initDB();
-      await seedUsers();   // ← ✨ v2.0: สร้าง test users หลัง table พร้อม
+      // ตรวจสอบการเชื่อมต่อ
+      await pool.query('SELECT 1');
       break;
     } catch (err) {
       console.log(`[auth-service] Waiting for DB... (${retries} retries left): ${err.message}`);
