@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ENGSE207 — Profile</title>
+  <script src="config.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+    nav { background: #1a73e8; color: #fff; padding: 12px 24px;
+          display: flex; justify-content: space-between; align-items: center; }
+    nav h1 { font-size: 1.1rem; }
+    nav a  { color: #fff; text-decoration: none; font-size: 0.9rem; margin-left: 16px; }
+    nav a:hover { text-decoration: underline; }
+    .container { max-width: 600px; margin: 32px auto; padding: 0 16px; }
+    .card { background: #fff; border-radius: 10px; padding: 28px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 24px; }
+    h2 { margin-bottom: 18px; font-size: 1.15rem; color: #1a73e8; }
+    .profile-header { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+    .avatar { width: 72px; height: 72px; border-radius: 50%;
+              background: #1a73e8; color: #fff; font-size: 1.8rem;
+              display: flex; align-items: center; justify-content: center; }
+    .profile-info h3 { font-size: 1.1rem; }
+    .profile-info p  { color: #666; font-size: 0.88rem; }
+    .badge-role { display: inline-block; padding: 2px 10px; border-radius: 12px;
+                  font-size: 0.78rem; font-weight: 600; margin-top: 4px; }
+    .badge-admin  { background: #fce4ec; color: #b71c1c; }
+    .badge-member { background: #e3f2fd; color: #1565c0; }
+    label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 4px; margin-top: 12px; }
+    input, textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    button {
+      margin-top: 18px; padding: 10px 24px; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 0.9rem; font-weight: 600;
+    }
+    .btn-primary { background: #1a73e8; color: #fff; }
+    .btn-primary:hover { background: #1558b0; }
+    #msg { padding: 10px 14px; border-radius: 6px; margin-bottom: 14px;
+           display: none; font-size: 0.88rem; }
+    .msg-ok  { background: #e8f5e9; color: #2e7d32; }
+    .msg-err { background: #fce4ec; color: #c62828; }
+    .field-row { display: flex; justify-content: space-between; padding: 8px 0;
+                 border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+    .field-row span:first-child { color: #666; }
+
+    /* Admin: users table */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #eee; }
+    th { background: #f5f7fa; color: #555; font-weight: 600; }
+    tr:hover td { background: #fafafa; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>👤 Profile</h1>
+  <div>
+    <a href="index.html">🏠 หน้าหลัก</a>
+    <a href="#" onclick="logout()">ออกจากระบบ</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div id="msg"></div>
+
+  <!-- Profile Card -->
+  <div class="card" id="profile-card">
+    <div class="profile-header">
+      <div class="avatar" id="avatar-letter">?</div>
+      <div class="profile-info">
+        <h3 id="profile-username">กำลังโหลด...</h3>
+        <p  id="profile-email"></p>
+        <span class="badge-role" id="profile-role-badge"></span>
+      </div>
+    </div>
+    <div>
+      <div class="field-row"><span>Display Name</span><span id="view-display-name">—</span></div>
+      <div class="field-row"><span>Bio</span><span id="view-bio">—</span></div>
+      <div class="field-row"><span>User ID</span><span id="view-userid">—</span></div>
+      <div class="field-row"><span>สมาชิกตั้งแต่</span><span id="view-created">—</span></div>
+    </div>
+  </div>
+
+  <!-- Edit Profile -->
+  <div class="card">
+    <h2>✏️ แก้ไขโปรไฟล์</h2>
+    <label>Display Name</label>
+    <input type="text" id="edit-display-name" placeholder="ชื่อที่แสดง" />
+    <label>Bio</label>
+    <textarea id="edit-bio" placeholder="แนะนำตัวเอง..."></textarea>
+    <label>Avatar URL</label>
+    <input type="url" id="edit-avatar" placeholder="https://..." />
+    <button class="btn-primary" onclick="updateProfile()">💾 บันทึก</button>
+  </div>
+
+  <!-- Admin: รายชื่อผู้ใช้ทั้งหมด -->
+  <div class="card" id="admin-card" style="display:none">
+    <h2>👥 รายชื่อผู้ใช้ทั้งหมด (Admin)</h2>
+    <table>
+      <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Display Name</th></tr></thead>
+      <tbody id="users-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) location.href = 'index.html';
+
+function showMsg(text, ok = true) {
+  const el = document.getElementById('msg');
+  el.textContent   = text;
+  el.className     = ok ? 'msg-ok' : 'msg-err';
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3500);
+}
+
+function logout() {
+  localStorage.removeItem('token');
+  location.href = 'index.html';
+}
+
+async function loadProfile() {
+  const r = await fetch(`${CONFIG.USER_URL}/api/users/me`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const d = await r.json();
+  if (!r.ok) return showMsg(d.error || 'โหลดโปรไฟล์ล้มเหลว', false);
+
+  const p = d.profile;
+  document.getElementById('avatar-letter').textContent  = (p.username || '?')[0].toUpperCase();
+  document.getElementById('profile-username').textContent = p.username;
+  document.getElementById('profile-email').textContent    = p.email;
+
+  const badge = document.getElementById('profile-role-badge');
+  badge.textContent  = p.role;
+  badge.className    = `badge-role badge-${p.role}`;
+
+  document.getElementById('view-display-name').textContent = p.display_name || '—';
+  document.getElementById('view-bio').textContent          = p.bio           || '—';
+  document.getElementById('view-userid').textContent       = p.user_id;
+  document.getElementById('view-created').textContent      = new Date(p.created_at).toLocaleDateString('th-TH');
+
+  // Pre-fill edit form
+  document.getElementById('edit-display-name').value = p.display_name || '';
+  document.getElementById('edit-bio').value           = p.bio           || '';
+  document.getElementById('edit-avatar').value        = p.avatar_url    || '';
+
+  // Admin: โหลดรายชื่อ users
+  if (p.role === 'admin') loadAllUsers();
+}
+
+async function updateProfile() {
+  const display_name = document.getElementById('edit-display-name').value.trim();
+  const bio          = document.getElementById('edit-bio').value.trim();
+  const avatar_url   = document.getElementById('edit-avatar').value.trim();
+
+  const r = await fetch(`${CONFIG.USER_URL}/api/users/me`, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      display_name: display_name || undefined,
+      bio:          bio          || undefined,
+      avatar_url:   avatar_url   || undefined
+    })
+  });
+  const d = await r.json();
+  if (!r.ok) return showMsg(d.error || 'บันทึกล้มเหลว', false);
+  showMsg('บันทึกโปรไฟล์สำเร็จ!');
+  loadProfile();
+}
+
+async function loadAllUsers() {
+  document.getElementById('admin-card').style.display = 'block';
+  const r = await fetch(`${CONFIG.USER_URL}/api/users`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const d = await r.json();
+  if (!r.ok) return;
+
+  const tbody = document.getElementById('users-table-body');
+  tbody.innerHTML = d.users.map(u => `
+    <tr>
+      <td>${u.user_id}</td>
+      <td>${u.username}</td>
+      <td>${u.email}</td>
+      <td><span class="badge-role badge-${u.role}">${u.role}</span></td>
+      <td>${u.display_name || '—'}</td>
+    </tr>`).join('');
+}
+
+loadProfile();
+</script>
+</body>
+</html>
