@@ -1,94 +1,93 @@
 services:
-
-  # ── PostgreSQL ─────────────────────────────────────────────────────
-  postgres:
-    image: postgres:15-alpine
+  auth-db:
+    image: postgres:15
     environment:
-      POSTGRES_DB:       ${POSTGRES_DB}
-      POSTGRES_USER:     ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: authdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./auth-service/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d authdb"]
       interval: 10s
-      timeout:  5s
-      retries:  5
-    networks: [taskboard-net]
+      timeout: 5s
+      retries: 5
 
-  # ── Auth Service ────────────────────────────────────────────────────
+  task-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./task-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d taskdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./user-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d userdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth-service:
     build: ./auth-service
     environment:
-      DB_HOST:      postgres
-      DB_PORT:      5432
-      DB_NAME:      ${POSTGRES_DB}
-      DB_USER:      ${POSTGRES_USER}
-      DB_PASSWORD:  ${POSTGRES_PASSWORD}
-      JWT_SECRET:   ${JWT_SECRET}
-      JWT_EXPIRES:  ${JWT_EXPIRES}
-      PORT:         3001
+      DATABASE_URL: postgres://admin:secret@auth-db:5432/authdb
+      JWT_SECRET: dev-shared-secret
+      JWT_EXPIRES_IN: 1h
+      PORT: 3001
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
     depends_on:
-      postgres: { condition: service_healthy }
-    networks: [taskboard-net]
+      auth-db: { condition: service_healthy }
     restart: unless-stopped
 
-  # ── Task Service ─────────────────────────────────────────────────────
   task-service:
     build: ./task-service
     environment:
-      DB_HOST:      postgres
-      DB_PORT:      5432
-      DB_NAME:      ${POSTGRES_DB}
-      DB_USER:      ${POSTGRES_USER}
-      DB_PASSWORD:  ${POSTGRES_PASSWORD}
-      JWT_SECRET:   ${JWT_SECRET}
-      PORT:         3002
+      DATABASE_URL: postgres://admin:secret@task-db:5432/taskdb
+      JWT_SECRET: dev-shared-secret
+      PORT: 3002
+      NODE_ENV: development
+    ports:
+      - "3002:3002"
     depends_on:
-      postgres:     { condition: service_healthy }
-      auth-service: { condition: service_started }
-    networks: [taskboard-net]
+      task-db: { condition: service_healthy }
     restart: unless-stopped
 
-  # ── Log Service ──────────────────────────────────────────────────────
-  log-service:
-    build: ./log-service
+  user-service:
+    build: ./user-service
     environment:
-      DB_HOST:      postgres
-      DB_PORT:      5432
-      DB_NAME:      ${POSTGRES_DB}
-      DB_USER:      ${POSTGRES_USER}
-      DB_PASSWORD:  ${POSTGRES_PASSWORD}
-      JWT_SECRET:   ${JWT_SECRET}
-      PORT:         3003
+      DATABASE_URL: postgres://admin:secret@user-db:5432/userdb
+      JWT_SECRET: dev-shared-secret
+      PORT: 3003
+      NODE_ENV: development
+    ports:
+      - "3003:3003"
     depends_on:
-      postgres: { condition: service_healthy }
-    networks: [taskboard-net]
+      user-db: { condition: service_healthy }
     restart: unless-stopped
 
-  # ── Frontend (Static) ────────────────────────────────────────────────
   frontend:
     build: ./frontend
-    networks: [taskboard-net]
-
-  # ── Nginx (API Gateway + TLS) ────────────────────────────────────────
-  nginx:
-    build: ./nginx
     ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - auth-service
-      - task-service
-      - log-service
-      - frontend
-    networks: [taskboard-net]
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-
-networks:
-  taskboard-net:
-    driver: bridge
+      - "8080:80"
