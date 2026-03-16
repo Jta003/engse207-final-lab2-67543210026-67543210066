@@ -140,4 +140,37 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────
+// PUT /api/users/:id — admin แก้ไขโปรไฟล์คนอื่น
+// ─────────────────────────────────────────────────────
+router.put('/:id', async (req, res) => {
+  if (req.user.role !== 'admin')
+    return res.status(403).json({ error: 'Forbidden: admin only' });
+
+  const targetId = parseInt(req.params.id);
+  const { display_name, bio, avatar_url, role } = req.body;
+
+  try {
+    const check = await pool.query(
+      'SELECT * FROM user_profiles WHERE user_id = $1', [targetId]
+    );
+    if (!check.rows[0]) return res.status(404).json({ error: 'User not found' });
+
+    const result = await pool.query(
+      `UPDATE user_profiles SET
+         display_name = COALESCE($1, display_name),
+         bio          = COALESCE($2, bio),
+         avatar_url   = COALESCE($3, avatar_url),
+         role         = COALESCE($4, role),
+         updated_at   = NOW()
+       WHERE user_id = $5 RETURNING *`,
+      [display_name, bio, avatar_url, role, targetId]
+    );
+    res.json({ profile: result.rows[0] });
+  } catch (err) {
+    console.error('[USER] PUT /:id error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

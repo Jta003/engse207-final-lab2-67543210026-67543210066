@@ -6,192 +6,332 @@
   <title>ENGSE207 — Profile</title>
   <script src="config.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
-    nav { background: #1a73e8; color: #fff; padding: 12px 24px;
-          display: flex; justify-content: space-between; align-items: center; }
-    nav h1 { font-size: 1.1rem; }
-    nav a  { color: #fff; text-decoration: none; font-size: 0.9rem; margin-left: 16px; }
-    nav a:hover { text-decoration: underline; }
-    .container { max-width: 600px; margin: 32px auto; padding: 0 16px; }
-    .card { background: #fff; border-radius: 10px; padding: 28px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 24px; }
-    h2 { margin-bottom: 18px; font-size: 1.15rem; color: #1a73e8; }
-    .profile-header { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
-    .avatar { width: 72px; height: 72px; border-radius: 50%;
-              background: #1a73e8; color: #fff; font-size: 1.8rem;
-              display: flex; align-items: center; justify-content: center; }
-    .profile-info h3 { font-size: 1.1rem; }
-    .profile-info p  { color: #666; font-size: 0.88rem; }
-    .badge-role { display: inline-block; padding: 2px 10px; border-radius: 12px;
-                  font-size: 0.78rem; font-weight: 600; margin-top: 4px; }
-    .badge-admin  { background: #fce4ec; color: #b71c1c; }
-    .badge-member { background: #e3f2fd; color: #1565c0; }
-    label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 4px; margin-top: 12px; }
-    input, textarea {
-      width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px;
-      font-size: 0.9rem;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --surface2: #273448;
+      --border: #334155; --text: #e2e8f0; --muted: #94a3b8;
+      --blue: #3b82f6; --blue2: #2563eb; --green: #22c55e;
+      --yellow: #f59e0b; --red: #ef4444; --purple: #a855f7; --radius: 10px;
     }
-    textarea { resize: vertical; min-height: 80px; }
-    button {
-      margin-top: 18px; padding: 10px 24px; border: none; border-radius: 6px;
-      cursor: pointer; font-size: 0.9rem; font-weight: 600;
-    }
-    .btn-primary { background: #1a73e8; color: #fff; }
-    .btn-primary:hover { background: #1558b0; }
-    #msg { padding: 10px 14px; border-radius: 6px; margin-bottom: 14px;
-           display: none; font-size: 0.88rem; }
-    .msg-ok  { background: #e8f5e9; color: #2e7d32; }
-    .msg-err { background: #fce4ec; color: #c62828; }
-    .field-row { display: flex; justify-content: space-between; padding: 8px 0;
-                 border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
-    .field-row span:first-child { color: #666; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    button { cursor: pointer; font-family: inherit; transition: all .15s; }
+    input, select, textarea { font-family: inherit; }
+    .hidden { display: none !important; }
 
-    /* Admin: users table */
-    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #eee; }
-    th { background: #f5f7fa; color: #555; font-weight: 600; }
-    tr:hover td { background: #fafafa; }
+    /* ── NAV ── */
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    nav h1 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
+    .nav-links { display: flex; gap: .5rem; }
+    .nav-link { padding: .5rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: .85rem; text-decoration: none; }
+    .nav-link:hover { background: var(--surface2); color: var(--text); }
+    .nav-link.danger:hover { color: var(--red); border-color: var(--red); background: rgba(239,68,68,.1); }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    /* ── CARD ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: .5rem; color: var(--text); }
+
+    /* ── PROFILE HEADER ── */
+    .profile-header { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.5rem; }
+    .avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; flex-shrink: 0; }
+    .profile-meta h2 { font-size: 1.2rem; }
+    .profile-meta p  { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+    .role-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: .75rem; font-weight: 600; margin-top: 4px; }
+    .role-admin  { background: rgba(168,85,247,.2);  color: #c4b5fd; }
+    .role-member { background: rgba(59,130,246,.2);  color: #93c5fd; }
+
+    /* ── FIELD ROW ── */
+    .field-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: .9rem; }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { color: var(--muted); font-size: .82rem; }
+    .field-value { font-weight: 500; }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: .82rem; color: var(--muted); margin-bottom: .4rem; font-weight: 500; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: .7rem 1rem; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: .9rem;
+    }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--blue); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group select option { background: var(--surface); }
+    .btn-submit { padding: .7rem 1.5rem; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: .9rem; font-weight: 600; }
+    .btn-submit:hover { background: var(--blue2); }
+
+    /* ── ADMIN TABLE ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th { text-align: left; padding: 10px 12px; background: var(--bg); color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+    .btn-edit-user { padding: 4px 12px; background: rgba(59,130,246,.15); color: #93c5fd; border: 1px solid rgba(59,130,246,.3); border-radius: 6px; font-size: .78rem; }
+    .btn-edit-user:hover { background: rgba(59,130,246,.3); }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 460px; box-shadow: 0 25px 50px rgba(0,0,0,.6); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .modal-header h3 { font-size: 1rem; font-weight: 700; }
+    .btn-close { background: none; border: none; color: var(--muted); font-size: 1.2rem; padding: .2rem .5rem; border-radius: 6px; }
+    .btn-close:hover { background: var(--surface2); color: var(--text); }
+    .modal-body { padding: 1.5rem; }
+    .modal-body .form-group { margin-bottom: 1rem; }
+    .modal-body input, .modal-body textarea, .modal-body select { width: 100%; padding: .7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: .9rem; }
+    .modal-body textarea { resize: vertical; min-height: 70px; }
+    .modal-footer { display: flex; gap: .75rem; justify-content: flex-end; padding: 1rem 1.5rem; border-top: 1px solid var(--border); }
+    .btn-secondary { padding: .6rem 1.2rem; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-size: .9rem; }
+
+    /* ── TOAST ── */
+    .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: .5rem; }
+    .toast { padding: .75rem 1.25rem; border-radius: 10px; font-size: .88rem; font-weight: 500; animation: fadeIn .2s ease; box-shadow: 0 8px 25px rgba(0,0,0,.3); max-width: 320px; }
+    .toast.success { background: rgba(34,197,94,.15);  color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+    .toast.error   { background: rgba(239,68,68,.15);  color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
+    .toast.info    { background: rgba(59,130,246,.15); color: #93c5fd; border: 1px solid rgba(59,130,246,.3); }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
 <nav>
   <h1>👤 Profile</h1>
-  <div>
-    <a href="index.html">🏠 หน้าหลัก</a>
-    <a href="#" onclick="logout()">ออกจากระบบ</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">🏠 หน้าหลัก</a>
+    <button class="nav-link danger" onclick="logout()">ออกจากระบบ</button>
   </div>
 </nav>
 
 <div class="container">
-  <div id="msg"></div>
 
-  <!-- Profile Card -->
-  <div class="card" id="profile-card">
+  <!-- ── โปรไฟล์ตัวเอง ── -->
+  <div class="card">
     <div class="profile-header">
       <div class="avatar" id="avatar-letter">?</div>
-      <div class="profile-info">
-        <h3 id="profile-username">กำลังโหลด...</h3>
+      <div class="profile-meta">
+        <h2 id="profile-username">กำลังโหลด...</h2>
         <p  id="profile-email"></p>
-        <span class="badge-role" id="profile-role-badge"></span>
+        <span class="role-badge" id="profile-role-badge"></span>
       </div>
     </div>
     <div>
-      <div class="field-row"><span>Display Name</span><span id="view-display-name">—</span></div>
-      <div class="field-row"><span>Bio</span><span id="view-bio">—</span></div>
-      <div class="field-row"><span>User ID</span><span id="view-userid">—</span></div>
-      <div class="field-row"><span>สมาชิกตั้งแต่</span><span id="view-created">—</span></div>
+      <div class="field-row"><span class="field-label">User ID</span>    <span class="field-value" id="view-userid">—</span></div>
+      <div class="field-row"><span class="field-label">Display Name</span><span class="field-value" id="view-display-name">—</span></div>
+      <div class="field-row"><span class="field-label">Bio</span>         <span class="field-value" id="view-bio">—</span></div>
+      <div class="field-row"><span class="field-label">Avatar URL</span>  <span class="field-value" id="view-avatar" style="font-size:.8rem;color:var(--muted)">—</span></div>
     </div>
   </div>
 
-  <!-- Edit Profile -->
+  <!-- ── แก้ไขโปรไฟล์ตัวเอง ── -->
   <div class="card">
-    <h2>✏️ แก้ไขโปรไฟล์</h2>
-    <label>Display Name</label>
-    <input type="text" id="edit-display-name" placeholder="ชื่อที่แสดง" />
-    <label>Bio</label>
-    <textarea id="edit-bio" placeholder="แนะนำตัวเอง..."></textarea>
-    <label>Avatar URL</label>
-    <input type="url" id="edit-avatar" placeholder="https://..." />
-    <button class="btn-primary" onclick="updateProfile()">💾 บันทึก</button>
+    <div class="card-title">✏️ แก้ไขโปรไฟล์</div>
+    <div class="grid-2">
+      <div class="form-group"><label>Display Name</label>
+        <input type="text" id="edit-display-name" placeholder="ชื่อที่แสดง" />
+      </div>
+      <div class="form-group"><label>Avatar URL</label>
+        <input type="url" id="edit-avatar" placeholder="https://..." />
+      </div>
+    </div>
+    <div class="form-group"><label>Bio</label>
+      <textarea id="edit-bio" placeholder="แนะนำตัวเอง..."></textarea>
+    </div>
+    <button class="btn-submit" onclick="updateProfile()">💾 บันทึก</button>
   </div>
 
-  <!-- Admin: รายชื่อผู้ใช้ทั้งหมด -->
-  <div class="card" id="admin-card" style="display:none">
-    <h2>👥 รายชื่อผู้ใช้ทั้งหมด (Admin)</h2>
-    <table>
-      <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Display Name</th></tr></thead>
-      <tbody id="users-table-body"></tbody>
-    </table>
+  <!-- ── Admin: จัดการ users ทั้งหมด ── -->
+  <div class="card hidden" id="admin-card">
+    <div class="card-title">👥 จัดการผู้ใช้ทั้งหมด <span style="font-size:.75rem;color:var(--muted);font-weight:400">(Admin only)</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Display Name</th><th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="users-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Modal แก้ไข user (Admin) ── -->
+<div id="edit-user-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✏️ แก้ไขโปรไฟล์ผู้ใช้</h3>
+      <button class="btn-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modal-user-id" />
+      <div class="form-group"><label>Username</label>
+        <input type="text" id="modal-username" disabled style="opacity:.5" />
+      </div>
+      <div class="form-group"><label>Display Name</label>
+        <input type="text" id="modal-display-name" placeholder="ชื่อที่แสดง" />
+      </div>
+      <div class="form-group"><label>Bio</label>
+        <textarea id="modal-bio" placeholder="แนะนำตัวเอง..."></textarea>
+      </div>
+      <div class="form-group"><label>Avatar URL</label>
+        <input type="url" id="modal-avatar" placeholder="https://..." />
+      </div>
+      <div class="form-group"><label>Role</label>
+        <select id="modal-role">
+          <option value="member">member</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-submit" onclick="saveUserEdit()">💾 บันทึก</button>
+    </div>
   </div>
 </div>
 
+<div class="toast-container" id="toast-container"></div>
+
 <script>
-const token = localStorage.getItem('token');
+const token = localStorage.getItem('jwt_token');
 if (!token) location.href = 'index.html';
 
-function showMsg(text, ok = true) {
-  const el = document.getElementById('msg');
-  el.textContent   = text;
-  el.className     = ok ? 'msg-ok' : 'msg-err';
-  el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', 3500);
+function toast(msg, type = 'info', duration = 3000) {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').prepend(t);
+  setTimeout(() => t.remove(), duration);
 }
 
 function logout() {
-  localStorage.removeItem('token');
+  localStorage.removeItem('jwt_token');
   location.href = 'index.html';
 }
 
-async function loadProfile() {
-  const r = await fetch(`${CONFIG.USER_URL}/api/users/me`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  const d = await r.json();
-  if (!r.ok) return showMsg(d.error || 'โหลดโปรไฟล์ล้มเหลว', false);
+function authH() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
 
-  const p = d.profile;
-  document.getElementById('avatar-letter').textContent  = (p.username || '?')[0].toUpperCase();
+/* ── โหลดโปรไฟล์ตัวเอง ── */
+async function loadProfile() {
+  const res  = await fetch(`${CONFIG.USER_URL}/api/users/me`, { headers: authH() });
+  const data = await res.json();
+  if (!res.ok) { toast('โหลดโปรไฟล์ไม่ได้', 'error'); return; }
+
+  const p = data.profile;
+  document.getElementById('avatar-letter').textContent    = (p.username||'?')[0].toUpperCase();
   document.getElementById('profile-username').textContent = p.username;
   document.getElementById('profile-email').textContent    = p.email;
+  document.getElementById('view-userid').textContent      = p.user_id;
+  document.getElementById('view-display-name').textContent= p.display_name || '—';
+  document.getElementById('view-bio').textContent         = p.bio           || '—';
+  document.getElementById('view-avatar').textContent      = p.avatar_url    || '—';
 
   const badge = document.getElementById('profile-role-badge');
-  badge.textContent  = p.role;
-  badge.className    = `badge-role badge-${p.role}`;
+  badge.textContent = p.role;
+  badge.className   = `role-badge role-${p.role}`;
 
-  document.getElementById('view-display-name').textContent = p.display_name || '—';
-  document.getElementById('view-bio').textContent          = p.bio           || '—';
-  document.getElementById('view-userid').textContent       = p.user_id;
-  document.getElementById('view-created').textContent      = new Date(p.created_at).toLocaleDateString('th-TH');
-
-  // Pre-fill edit form
+  // prefill form
   document.getElementById('edit-display-name').value = p.display_name || '';
   document.getElementById('edit-bio').value           = p.bio           || '';
   document.getElementById('edit-avatar').value        = p.avatar_url    || '';
 
-  // Admin: โหลดรายชื่อ users
+  // ถ้า admin โหลด user list ด้วย
   if (p.role === 'admin') loadAllUsers();
 }
 
+/* ── แก้ไขโปรไฟล์ตัวเอง ── */
 async function updateProfile() {
-  const display_name = document.getElementById('edit-display-name').value.trim();
-  const bio          = document.getElementById('edit-bio').value.trim();
-  const avatar_url   = document.getElementById('edit-avatar').value.trim();
+  const display_name = document.getElementById('edit-display-name').value.trim() || undefined;
+  const bio          = document.getElementById('edit-bio').value.trim()           || undefined;
+  const avatar_url   = document.getElementById('edit-avatar').value.trim()        || undefined;
 
-  const r = await fetch(`${CONFIG.USER_URL}/api/users/me`, {
-    method: 'PUT',
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      display_name: display_name || undefined,
-      bio:          bio          || undefined,
-      avatar_url:   avatar_url   || undefined
-    })
+  const btn = document.querySelector('.btn-submit');
+  btn.innerHTML = '<span class="spinner"></span>'; btn.disabled = true;
+
+  const res  = await fetch(`${CONFIG.USER_URL}/api/users/me`, {
+    method: 'PUT', headers: authH(),
+    body: JSON.stringify({ display_name, bio, avatar_url })
   });
-  const d = await r.json();
-  if (!r.ok) return showMsg(d.error || 'บันทึกล้มเหลว', false);
-  showMsg('บันทึกโปรไฟล์สำเร็จ!');
+  const data = await res.json();
+  btn.textContent = '💾 บันทึก'; btn.disabled = false;
+
+  if (!res.ok) { toast(data.error || 'บันทึกไม่สำเร็จ', 'error'); return; }
+  toast('✅ บันทึกโปรไฟล์สำเร็จ', 'success');
   loadProfile();
 }
 
+/* ── Admin: โหลดรายชื่อ users ── */
 async function loadAllUsers() {
-  document.getElementById('admin-card').style.display = 'block';
-  const r = await fetch(`${CONFIG.USER_URL}/api/users`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  const d = await r.json();
-  if (!r.ok) return;
+  document.getElementById('admin-card').classList.remove('hidden');
+  const res  = await fetch(`${CONFIG.USER_URL}/api/users`, { headers: authH() });
+  const data = await res.json();
+  if (!res.ok) return;
 
   const tbody = document.getElementById('users-table-body');
-  tbody.innerHTML = d.users.map(u => `
+  tbody.innerHTML = data.users.map(u => `
     <tr>
       <td>${u.user_id}</td>
       <td>${u.username}</td>
-      <td>${u.email}</td>
-      <td><span class="badge-role badge-${u.role}">${u.role}</span></td>
+      <td style="color:var(--muted)">${u.email}</td>
+      <td><span class="role-badge role-${u.role}">${u.role}</span></td>
       <td>${u.display_name || '—'}</td>
+      <td>
+        <button class="btn-edit-user" onclick="openEditModal(${u.user_id}, '${u.username}', '${u.display_name||''}', '${u.bio||''}', '${u.avatar_url||''}', '${u.role}')">
+          ✏️ แก้ไข
+        </button>
+      </td>
     </tr>`).join('');
 }
+
+/* ── Modal แก้ไข user ── */
+function openEditModal(id, username, display_name, bio, avatar_url, role) {
+  document.getElementById('modal-user-id').value      = id;
+  document.getElementById('modal-username').value     = username;
+  document.getElementById('modal-display-name').value = display_name;
+  document.getElementById('modal-bio').value          = bio;
+  document.getElementById('modal-avatar').value       = avatar_url;
+  document.getElementById('modal-role').value         = role;
+  document.getElementById('edit-user-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('edit-user-modal').classList.add('hidden');
+}
+
+async function saveUserEdit() {
+  const id           = document.getElementById('modal-user-id').value;
+  const display_name = document.getElementById('modal-display-name').value.trim() || undefined;
+  const bio          = document.getElementById('modal-bio').value.trim()           || undefined;
+  const avatar_url   = document.getElementById('modal-avatar').value.trim()        || undefined;
+  const role         = document.getElementById('modal-role').value;
+
+  const btn = document.querySelector('#edit-user-modal .btn-submit');
+  btn.innerHTML = '<span class="spinner"></span>'; btn.disabled = true;
+
+  const res  = await fetch(`${CONFIG.USER_URL}/api/users/${id}`, {
+    method: 'PUT', headers: authH(),
+    body: JSON.stringify({ display_name, bio, avatar_url, role })
+  });
+  const data = await res.json();
+  btn.textContent = '💾 บันทึก'; btn.disabled = false;
+
+  if (!res.ok) { toast(data.error || 'บันทึกไม่สำเร็จ', 'error'); return; }
+  toast(`✅ แก้ไข user #${id} สำเร็จ`, 'success');
+  closeModal();
+  loadAllUsers();
+}
+
+document.getElementById('edit-user-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
 
 loadProfile();
 </script>
