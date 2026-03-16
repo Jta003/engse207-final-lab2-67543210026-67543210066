@@ -16,11 +16,15 @@ app.use('/api/tasks', taskRoutes);
 app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
 
 async function start() {
+  const dbUrl  = process.env.DATABASE_URL || 'NOT SET';
+  const safeUrl = dbUrl.replace(/:([^:@]+)@/, ':****@');
+  console.log(`[task-service] DATABASE_URL: ${safeUrl}`);
+
   let retries = 10;
   while (retries > 0) {
-    try { await pool.query('SELECT 1'); console.log('[task-service] DB connected'); break; }
+    try { await pool.query('SELECT 1'); console.log('[task-service] DB connected ✓'); break; }
     catch (err) {
-      console.log(`[task-service] Waiting for DB... (${retries} left)`);
+      console.log(`[task-service] Waiting for DB... (${retries} left): ${err.message}`);
       retries--;
       await new Promise(r => setTimeout(r, 3000));
     }
